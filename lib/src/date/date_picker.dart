@@ -24,6 +24,9 @@ import 'show_date_picker_dialog.dart';
 ///    [DatePicker].
 ///
 class DatePicker extends StatefulWidget {
+
+  final List<DateTime>? disabledDates;
+
   /// Creates a calendar date picker.
   ///
   /// It will display a grid of days for the [initialDate]'s month. If [initialDate]
@@ -80,6 +83,7 @@ class DatePicker extends StatefulWidget {
     this.previousPageSemanticLabel,
     this.nextPageSemanticLabel,
     this.disabledDayPredicate,
+    this.disabledDates,
   }) {
     assert(!minDate.isAfter(maxDate), "minDate can't be after maxDate");
   }
@@ -237,6 +241,7 @@ class _DatePickerState extends State<DatePicker> {
   PickerType? _pickerType;
   DateTime? _displayedDate;
   DateTime? _selectedDate;
+  DatePredicate? _combinedDisabledDayPredicate;
 
   @override
   void initState() {
@@ -244,9 +249,8 @@ class _DatePickerState extends State<DatePicker> {
         DateUtilsX.clampDateToRange(max: widget.maxDate, min: widget.minDate, date: DateTime.now());
     _displayedDate = DateUtils.dateOnly(widget.initialDate ?? clampedInitailDate);
     _pickerType = widget.initialPickerType;
-
     _selectedDate = widget.selectedDate != null ? DateUtils.dateOnly(widget.selectedDate!) : null;
-
+    _updateDisabledDayPredicate();
     super.initState();
   }
 
@@ -263,7 +267,40 @@ class _DatePickerState extends State<DatePicker> {
     if (oldWidget.selectedDate != widget.selectedDate) {
       _selectedDate = widget.selectedDate != null ? DateUtils.dateOnly(widget.selectedDate!) : null;
     }
+    if (oldWidget.disabledDayPredicate != widget.disabledDayPredicate ||
+        oldWidget.disabledDates != widget.disabledDates) {
+      _updateDisabledDayPredicate();
+    }
     super.didUpdateWidget(oldWidget);
+  }
+
+  void _updateDisabledDayPredicate() {
+    // If neither property is provided, there's no need for a predicate
+    if (widget.disabledDayPredicate == null && (widget.disabledDates == null || widget.disabledDates!.isEmpty)) {
+      _combinedDisabledDayPredicate = null;
+      return;
+    }
+
+    // Create a predicate that combines both the original function and the dates array
+    _combinedDisabledDayPredicate = (DateTime date) {
+      // First check the original predicate if it exists
+      if (widget.disabledDayPredicate != null && widget.disabledDayPredicate!(date)) {
+        return true;
+      }
+      
+      // Then check if the date is in the disabled dates list
+      if (widget.disabledDates != null) {
+        final dateOnly = DateUtils.dateOnly(date);
+        for (final disabledDate in widget.disabledDates!) {
+          final disabledDateOnly = DateUtils.dateOnly(disabledDate);
+          if (dateOnly.isAtSameMomentAs(disabledDateOnly)) {
+            return true;
+          }
+        }
+      }
+      
+      return false;
+    };
   }
 
   @override
@@ -296,7 +333,7 @@ class _DatePickerState extends State<DatePicker> {
             splashRadius: widget.splashRadius,
             previousPageSemanticLabel: widget.previousPageSemanticLabel,
             nextPageSemanticLabel: widget.nextPageSemanticLabel,
-            disabledDayPredicate: widget.disabledDayPredicate,
+            disabledDayPredicate: _combinedDisabledDayPredicate,
             onLeadingDateTap: () {
               setState(() {
                 _pickerType = PickerType.months;
