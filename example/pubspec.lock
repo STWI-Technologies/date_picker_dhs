@@ -44,9 +44,11 @@ packages:
   date_picker_plus:
     dependency: "direct main"
     description:
-      path: ".."
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: f4214195ef1f10a41ecb09782c0208943914b652
+      url: "https://github.com/STWI-Technologies/date_picker_dhs.git"
+    source: git
     version: "4.1.0"
   fake_async:
     dependency: transitive
