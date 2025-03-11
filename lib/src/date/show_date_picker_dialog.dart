@@ -71,6 +71,7 @@ Future<DateTime?> showDatePickerDialog({
   bool centerLeadingDate = false,
   String? previousPageSemanticLabel,
   String? nextPageSemanticLabel,
+  List<DateTime>? disabledDates,
 }) async {
   return showDialog<DateTime>(
     context: context,
@@ -126,6 +127,7 @@ Future<DateTime?> showDatePickerDialog({
                 splashRadius: splashRadius,
                 previousPageSemanticLabel: previousPageSemanticLabel,
                 nextPageSemanticLabel: nextPageSemanticLabel,
+                disabledDates: disabledDates,
               ),
             ),
           ),
